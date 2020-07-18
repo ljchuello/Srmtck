@@ -222,14 +222,57 @@ namespace NominaEmailsV2
                 // Prioridad
                 ServicePointManager.ServerCertificateValidationCallback = (delegate { return true; });
 
+                FileInfo fileInfo = new FileInfo(file);
+
                 // Construimos el correo
                 using (MailMessage mailMessage = new MailMessage())
                 {
                     mailMessage.To.Add(receptor);
-                    mailMessage.From = new MailAddress(correo.Email, $"Sermatick", Encoding.UTF8);
-                    mailMessage.Subject = "Resumen rol de pago";
+                    mailMessage.From = new MailAddress(correo.Email, correo.Email, Encoding.UTF8);
+
+                    switch (fileInfo.Name.Substring(4, 2))
+                    {
+                        case "01":
+                            mailMessage.Subject = $"ROL DE PAGOS de Enero {fileInfo.Name.Substring(0, 4)}";
+                            break;
+                        case "02":
+                            mailMessage.Subject = $"ROL DE PAGOS de Febrero {fileInfo.Name.Substring(0, 4)}";
+                            break;
+                        case "03":
+                            mailMessage.Subject = $"ROL DE PAGOS de Marzo {fileInfo.Name.Substring(0, 4)}";
+                            break;
+                        case "04":
+                            mailMessage.Subject = $"ROL DE PAGOS de Abril {fileInfo.Name.Substring(0, 4)}";
+                            break;
+                        case "05":
+                            mailMessage.Subject = $"ROL DE PAGOS de Mayo {fileInfo.Name.Substring(0, 4)}";
+                            break;
+                        case "06":
+                            mailMessage.Subject = $"ROL DE PAGOS de Junio {fileInfo.Name.Substring(0, 4)}";
+                            break;
+                        case "07":
+                            mailMessage.Subject = $"ROL DE PAGOS de Julio {fileInfo.Name.Substring(0, 4)}";
+                            break;
+                        case "08":
+                            mailMessage.Subject = $"ROL DE PAGOS de Agosto {fileInfo.Name.Substring(0, 4)}";
+                            break;
+                        case "09":
+                            mailMessage.Subject = $"ROL DE PAGOS de Septiembre {fileInfo.Name.Substring(0, 4)}";
+                            break;
+                        case "10":
+                            mailMessage.Subject = $"ROL DE PAGOS de Octumbre {fileInfo.Name.Substring(0, 4)}";
+                            break;
+                        case "11":
+                            mailMessage.Subject = $"ROL DE PAGOS de Noviembre {fileInfo.Name.Substring(0, 4)}";
+                            break;
+                        case "12":
+                            mailMessage.Subject = $"ROL DE PAGOS de Diciembre {fileInfo.Name.Substring(0, 4)}";
+                            break;
+                    }
+
+                    mailMessage.Subject = mailMessage.Subject.ToUpper();
                     mailMessage.SubjectEncoding = Encoding.UTF8;
-                    mailMessage.Body = "Rol de pago";
+                    mailMessage.Body = $"Adjunto se encuentra su {mailMessage.Subject.ToLower()}. Cualquier inquietud favor remita a sjurado@contaservis.ec y mloja@grupoancon.com";
                     mailMessage.BodyEncoding = Encoding.UTF8;
                     mailMessage.IsBodyHtml = true;
 
