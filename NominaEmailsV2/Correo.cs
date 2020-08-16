@@ -11,6 +11,7 @@ namespace NominaEmailsV2
     public class Correo
     {
         public string Email { set; get; } = string.Empty;
+        public string Usuario { set; get; } = string.Empty;
         public string Contrasenia { set; get; } = string.Empty;
         public string Servidor { set; get; } = string.Empty;
         public string Puerto { set; get; } = string.Empty;
@@ -39,7 +40,7 @@ namespace NominaEmailsV2
                         // Enviamos
                         using (SmtpClient smtpClient = new SmtpClient())
                         {
-                            smtpClient.Credentials = new NetworkCredential(correo.Email, correo.Contrasenia);
+                            smtpClient.Credentials = new NetworkCredential(correo.Usuario, correo.Contrasenia);
                             smtpClient.Port = Convert.ToInt32(correo.Puerto);
                             smtpClient.Host = correo.Servidor;
                             smtpClient.EnableSsl = correo.Ssl;

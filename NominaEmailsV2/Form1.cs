@@ -29,6 +29,7 @@ namespace NominaEmailsV2
 
             // Seteamos
             txtCorreo.Text = _correo.Email;
+            txtUsuario.Text = _correo.Usuario;
             txtContrasenia.Text = _correo.Contrasenia;
             txtServidorSalida.Text = _correo.Servidor;
             txtPuertoSalida.Text = _correo.Puerto;
@@ -47,6 +48,13 @@ namespace NominaEmailsV2
                     if (txtCorreo.Text.Length <= 0)
                     {
                         MessageBox.Show("Debe ingresar un correo electrónico", string.Empty, MessageBoxButtons.OK,
+                            MessageBoxIcon.Error);
+                        return false;
+                    }
+
+                    if (txtUsuario.Text.Length <= 0)
+                    {
+                        MessageBox.Show("Debe ingresar un usuario", string.Empty, MessageBoxButtons.OK,
                             MessageBoxIcon.Error);
                         return false;
                     }
@@ -75,6 +83,7 @@ namespace NominaEmailsV2
                     // probamos
                     _correo = new Correo();
                     _correo.Email = txtCorreo.Text;
+                    _correo.Usuario = txtUsuario.Text;
                     _correo.Contrasenia = txtContrasenia.Text;
                     _correo.Servidor = txtServidorSalida.Text;
                     _correo.Puerto = txtPuertoSalida.Text;
@@ -133,6 +142,7 @@ namespace NominaEmailsV2
                 // probamos
                 _correo = new Correo();
                 _correo.Email = txtCorreo.Text;
+                _correo.Usuario = txtUsuario.Text;
                 _correo.Contrasenia = txtContrasenia.Text;
                 _correo.Servidor = txtServidorSalida.Text;
                 _correo.Puerto = txtPuertoSalida.Text;
@@ -272,7 +282,7 @@ namespace NominaEmailsV2
 
                     mailMessage.Subject = mailMessage.Subject.ToUpper();
                     mailMessage.SubjectEncoding = Encoding.UTF8;
-                    mailMessage.Body = $"Adjunto se encuentra su {mailMessage.Subject.ToLower()}. Cualquier inquietud favor remita a sjurado@contaservis.ec y mloja@grupoancon.com";
+                    mailMessage.Body = $"Adjunto se encuentra su {mailMessage.Subject.ToLower()}.";
                     mailMessage.BodyEncoding = Encoding.UTF8;
                     mailMessage.IsBodyHtml = true;
 
@@ -282,7 +292,7 @@ namespace NominaEmailsV2
                     // Enviamos
                     using (SmtpClient smtpClient = new SmtpClient())
                     {
-                        smtpClient.Credentials = new NetworkCredential(correo.Email, correo.Contrasenia);
+                        smtpClient.Credentials = new NetworkCredential(correo.Usuario, correo.Contrasenia);
                         smtpClient.Port = Convert.ToInt32(correo.Puerto);
                         smtpClient.Host = correo.Servidor;
                         smtpClient.EnableSsl = correo.Ssl;
