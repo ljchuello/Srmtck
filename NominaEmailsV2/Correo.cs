@@ -16,6 +16,8 @@ namespace NominaEmailsV2
         public string Servidor { set; get; } = string.Empty;
         public string Puerto { set; get; } = string.Empty;
         public bool Ssl { set; get; } = true;
+        public string RutaOrigen { set; get; } = string.Empty;
+        public string RutaDestino { set; get; } = string.Empty;
 
         public async Task<bool> ProbarAsync(Correo correo)
         {
@@ -33,7 +35,9 @@ namespace NominaEmailsV2
                         mailMessage.From = new MailAddress(correo.Email, $"Sermatick", Encoding.UTF8);
                         mailMessage.Subject = "Resumen rol de pago";
                         mailMessage.SubjectEncoding = Encoding.UTF8;
-                        mailMessage.Body = "Rol de pago";
+                        mailMessage.Body = "<p>Estimado Cliente reciba un cordial saludo de Grupo ANCON le informamos que se ha procedido al registro de su abono, el mismo que se detalla en el Recibo de Caja adjunto." +
+                                           "<br/>Agradecemos su pago" +
+                                           "<br/>Estamos para brindarle un excelente servicio, Saludos.<p>";
                         mailMessage.BodyEncoding = Encoding.UTF8;
                         mailMessage.IsBodyHtml = true;
 
@@ -47,9 +51,6 @@ namespace NominaEmailsV2
                             smtpClient.Send(mailMessage);
                         }
                     }
-
-                    // Guardamos
-                    Fichero.Guardar(Fichero.Tipo.Sermatick_Correo, JsonConvert.SerializeObject(correo));
 
                     // Libre de pecados
                     return true;

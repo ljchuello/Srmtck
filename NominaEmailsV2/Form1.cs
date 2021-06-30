@@ -8,7 +8,6 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using MetroFramework.Forms;
-using Newtonsoft.Json;
 using Microsoft.WindowsAPICodePack.Dialogs;
 
 namespace NominaEmailsV2
@@ -20,12 +19,12 @@ namespace NominaEmailsV2
         public Form1()
         {
             InitializeComponent();
-            Text = "Nómina Emails V2";
+            Text = @"Envio recibos";
 
             CheckForIllegalCrossThreadCalls = false;
 
             // Leemos
-            _correo = JsonConvert.DeserializeObject<Correo>(Fichero.Leer(Fichero.Tipo.Sermatick_Correo)) ?? new Correo();
+            _correo = Fichero.Leer();
 
             // Seteamos
             txtCorreo.Text = _correo.Email;
@@ -35,8 +34,9 @@ namespace NominaEmailsV2
             txtPuertoSalida.Text = _correo.Puerto;
             chSsl.Checked = _correo.Ssl;
 
-            // Volvemos a leer
-            txtRuta.Text = Fichero.Leer(Fichero.Tipo.Sermatick_Ruta) ?? string.Empty;
+            // Rutas
+            txtRutaOrigen.Text = _correo.RutaOrigen;
+            txtRutaDestino.Text = _correo.RutaDestino;
         }
 
         async Task<bool> ValidarEmailAsync()
@@ -47,36 +47,31 @@ namespace NominaEmailsV2
                 {
                     if (txtCorreo.Text.Length <= 0)
                     {
-                        MessageBox.Show("Debe ingresar un correo electrónico", string.Empty, MessageBoxButtons.OK,
-                            MessageBoxIcon.Error);
+                        MessageBox.Show("Debe ingresar un correo electrónico", string.Empty, MessageBoxButtons.OK, MessageBoxIcon.Error);
                         return false;
                     }
 
                     if (txtUsuario.Text.Length <= 0)
                     {
-                        MessageBox.Show("Debe ingresar un usuario", string.Empty, MessageBoxButtons.OK,
-                            MessageBoxIcon.Error);
+                        MessageBox.Show("Debe ingresar un usuario", string.Empty, MessageBoxButtons.OK, MessageBoxIcon.Error);
                         return false;
                     }
 
                     if (txtContrasenia.Text.Length <= 0)
                     {
-                        MessageBox.Show("Debe ingresar una contraseña", string.Empty, MessageBoxButtons.OK,
-                            MessageBoxIcon.Error);
+                        MessageBox.Show("Debe ingresar una contraseña", string.Empty, MessageBoxButtons.OK, MessageBoxIcon.Error);
                         return false;
                     }
 
                     if (txtServidorSalida.Text.Length <= 0)
                     {
-                        MessageBox.Show("Debe ingresar un servidor de salida", string.Empty, MessageBoxButtons.OK,
-                            MessageBoxIcon.Error);
+                        MessageBox.Show("Debe ingresar un servidor de salida", string.Empty, MessageBoxButtons.OK, MessageBoxIcon.Error);
                         return false;
                     }
 
                     if (txtPuertoSalida.Text.Length <= 0)
                     {
-                        MessageBox.Show("Debe ingresar un puerto de salida", string.Empty, MessageBoxButtons.OK,
-                            MessageBoxIcon.Error);
+                        MessageBox.Show("Debe ingresar un puerto de salida", string.Empty, MessageBoxButtons.OK, MessageBoxIcon.Error);
                         return false;
                     }
 
@@ -88,11 +83,16 @@ namespace NominaEmailsV2
                     _correo.Servidor = txtServidorSalida.Text;
                     _correo.Puerto = txtPuertoSalida.Text;
                     _correo.Ssl = chSsl.Checked;
+                    _correo.RutaOrigen = txtRutaOrigen.Text;
+                    _correo.RutaDestino = txtRutaDestino.Text;
 
                     if (await _correo.ProbarAsync(_correo) == false)
                     {
                         return false;
                     }
+
+                    // Guardamos
+                    Fichero.Guardar(_correo);
 
                     // Libre de pecados
                     return true;
@@ -110,8 +110,7 @@ namespace NominaEmailsV2
 
             if (exitoso)
             {
-                MessageBox.Show("Se ha valido el correo de manera exitosa", string.Empty, MessageBoxButtons.OK,
-                    MessageBoxIcon.Information);
+                MessageBox.Show("Se ha valido el correo de manera exitosa", string.Empty, MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
         }
 
@@ -121,7 +120,7 @@ namespace NominaEmailsV2
             dialog.IsFolderPicker = true;
             if (dialog.ShowDialog() == CommonFileDialogResult.Ok)
             {
-                txtRuta.Text = $"{dialog.FileName}";
+                txtRutaOrigen.Text = $"{dialog.FileName}";
             }
         }
 
@@ -129,15 +128,18 @@ namespace NominaEmailsV2
         {
             await Task.Run(async () =>
             {
-                // Validamos el directorio
-                if (!Directory.Exists(txtRuta.Text))
+                // Validamos el directorio origen
+                if (!Directory.Exists(txtRutaOrigen.Text))
                 {
-                    MessageBox.Show("La ruta no es válida, selecciona una ruta.", string.Empty, MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    MessageBox.Show("La ruta de origen no es válida, selecciona una ruta.", string.Empty, MessageBoxButtons.OK, MessageBoxIcon.Error);
                     return;
                 }
-
-                // Si la ruta es válida, la guardamos
-                Fichero.Guardar(Fichero.Tipo.Sermatick_Ruta, txtRuta.Text);
+                // Validamos el directorio destino
+                if (!Directory.Exists(txtRutaDestino.Text))
+                {
+                    MessageBox.Show("La ruta de destino no es válida, selecciona una ruta.", string.Empty, MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    return;
+                }
 
                 // probamos
                 _correo = new Correo();
@@ -147,17 +149,22 @@ namespace NominaEmailsV2
                 _correo.Servidor = txtServidorSalida.Text;
                 _correo.Puerto = txtPuertoSalida.Text;
                 _correo.Ssl = chSsl.Checked;
+                _correo.RutaOrigen = txtRutaOrigen.Text;
+                _correo.RutaDestino = txtRutaDestino.Text;
 
                 if (await _correo.ProbarAsync(_correo) == false)
                 {
                     return;
                 }
 
+                // Grabamos
+                Fichero.Guardar(_correo);
+
                 // Leemos el directorio
                 List<Pdf> files = new List<Pdf>();
 
                 // formateamos
-                foreach (var row in Directory.GetFiles(txtRuta.Text).ToList())
+                foreach (var row in Directory.GetFiles(txtRutaOrigen.Text).ToList())
                 {
                     // pdf
                     Pdf pdf = new Pdf();
@@ -166,19 +173,31 @@ namespace NominaEmailsV2
                     if (row.ToLower().Contains("pdf"))
                     {
                         // Seteamos el nombre
-                        string email = row;
+                        string carpeta = "";
+                        string email = "";
+                        string reciboId = "";
 
-                        // Eliminamos el directorio
-                        email = email.Replace(txtRuta.Text, string.Empty);
+                        // File
+                        FileInfo fileInfo = new FileInfo(row);
 
-                        // Pasamos a minusculas
-                        email = email.ToLower();
+                        // Set recibo
+                        reciboId = fileInfo.Name.ToLower();
+                        reciboId = reciboId.Replace(" ", string.Empty);
+                        reciboId = reciboId.Substring(0, reciboId.IndexOf("_"));
 
-                        // Eliminamos el 202012_
-                        email = email.Substring(8, email.Length - 8);
+                        // Ruta
+                        carpeta = reciboId.Substring(0, 2);
 
-                        // Quitamos el .pdf
+                        // Email
+                        email = fileInfo.Name.ToLower();
+                        email = email.Replace(" ", string.Empty);
+                        email = email.Replace($"{reciboId}_", string.Empty);
                         email = email.Replace(".pdf", string.Empty);
+
+                        // Set final
+                        reciboId = reciboId.ToUpper();
+                        email = email.ToLower();
+                        
 
                         // validamos el correo eletrónico
                         if (Pdf.Validar(email))
@@ -186,6 +205,7 @@ namespace NominaEmailsV2
                             // Seteamos
                             pdf.Filename = row;
                             pdf.Email = email;
+                            pdf.Ruta = carpeta;
 
                             // Añadimos
                             files.Add(pdf);
@@ -208,6 +228,11 @@ namespace NominaEmailsV2
                     if (Send(row.Email, row.Filename, _correo))
                     {
                         exitosos++;
+
+                        // Movemos
+                        FileInfo fileInfo = new FileInfo(row.Filename);
+                        string destino = $"{txtRutaDestino.Text}\\{row.Ruta}";
+                        Fichero.Mover(fileInfo, destino);
                     }
                     else
                     {
@@ -239,50 +264,13 @@ namespace NominaEmailsV2
                 {
                     mailMessage.To.Add(receptor);
                     mailMessage.From = new MailAddress(correo.Email, correo.Email, Encoding.UTF8);
-
-                    switch (fileInfo.Name.Substring(4, 2))
-                    {
-                        case "01":
-                            mailMessage.Subject = $"ROL DE PAGOS de Enero {fileInfo.Name.Substring(0, 4)}";
-                            break;
-                        case "02":
-                            mailMessage.Subject = $"ROL DE PAGOS de Febrero {fileInfo.Name.Substring(0, 4)}";
-                            break;
-                        case "03":
-                            mailMessage.Subject = $"ROL DE PAGOS de Marzo {fileInfo.Name.Substring(0, 4)}";
-                            break;
-                        case "04":
-                            mailMessage.Subject = $"ROL DE PAGOS de Abril {fileInfo.Name.Substring(0, 4)}";
-                            break;
-                        case "05":
-                            mailMessage.Subject = $"ROL DE PAGOS de Mayo {fileInfo.Name.Substring(0, 4)}";
-                            break;
-                        case "06":
-                            mailMessage.Subject = $"ROL DE PAGOS de Junio {fileInfo.Name.Substring(0, 4)}";
-                            break;
-                        case "07":
-                            mailMessage.Subject = $"ROL DE PAGOS de Julio {fileInfo.Name.Substring(0, 4)}";
-                            break;
-                        case "08":
-                            mailMessage.Subject = $"ROL DE PAGOS de Agosto {fileInfo.Name.Substring(0, 4)}";
-                            break;
-                        case "09":
-                            mailMessage.Subject = $"ROL DE PAGOS de Septiembre {fileInfo.Name.Substring(0, 4)}";
-                            break;
-                        case "10":
-                            mailMessage.Subject = $"ROL DE PAGOS de Octumbre {fileInfo.Name.Substring(0, 4)}";
-                            break;
-                        case "11":
-                            mailMessage.Subject = $"ROL DE PAGOS de Noviembre {fileInfo.Name.Substring(0, 4)}";
-                            break;
-                        case "12":
-                            mailMessage.Subject = $"ROL DE PAGOS de Diciembre {fileInfo.Name.Substring(0, 4)}";
-                            break;
-                    }
-
-                    mailMessage.Subject = mailMessage.Subject.ToUpper();
+                    mailMessage.Subject = $"Envío de recibo";
                     mailMessage.SubjectEncoding = Encoding.UTF8;
-                    mailMessage.Body = $"Adjunto se encuentra su {mailMessage.Subject.ToLower()}.";
+                    mailMessage.Body = "<p>Estimado Cliente reciba un cordial saludo de Grupo ANCON le informamos que se ha procedido al registro de su abono, el mismo que se detalla en el Recibo de Caja adjunto.</p>" +
+                                       "<p>&nbsp;</p>" +
+                                       "<p>Agradecemos su pago</p>" +
+                                       "<p>&nbsp;</p>" +
+                                       "<p>Estamos para brindarle un excelente servicio, Saludos.</p>";
                     mailMessage.BodyEncoding = Encoding.UTF8;
                     mailMessage.IsBodyHtml = true;
 

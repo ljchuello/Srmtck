@@ -1,15 +1,16 @@
 ﻿using System;
 using System.IO;
+using Newtonsoft.Json;
 
 namespace NominaEmailsV2
 {
     public class Fichero
     {
-        public static void Guardar(Tipo tipo, string s)
+        public static void Guardar(Correo correo)
         {
             try
             {
-                File.WriteAllText($"{Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments)}\\{tipo}.json", s);
+                File.WriteAllText($"{Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments)}\\reribos.json", JsonConvert.SerializeObject(correo, Formatting.Indented));
             }
             catch (Exception)
             {
@@ -17,22 +18,37 @@ namespace NominaEmailsV2
             }
         }
 
-        public static string Leer(Tipo tipo)
+        public static Correo Leer()
         {
             try
             {
-                return File.ReadAllText($"{Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments)}\\{tipo}.json");
+                string json = File.ReadAllText($"{Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments)}\\reribos.json");
+                Correo correo = JsonConvert.DeserializeObject<Correo>(json) ?? new Correo();
+                return correo;
             }
             catch (Exception)
             {
-                return string.Empty;
+                return new Correo();
             }
         }
 
-        public enum Tipo
+        public static void Mover(FileInfo fileInfo, string destino)
         {
-            Sermatick_Ruta,
-            Sermatick_Correo,
+            try
+            {
+                if (!Directory.Exists(destino))
+                {
+                    Directory.CreateDirectory(destino);
+                }
+                string origen = fileInfo.FullName;
+                destino = $"{destino}\\{fileInfo.Name}";
+
+                File.Move(origen, destino);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex);
+            }
         }
     }
 }

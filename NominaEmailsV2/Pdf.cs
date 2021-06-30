@@ -7,6 +7,7 @@ namespace NominaEmailsV2
     {
         public string Email { set; get; } = string.Empty;
         public string Filename { set; get; } = string.Empty;
+        public string Ruta { set; get; } = string.Empty;
 
         public static bool Validar(string email)
         {
