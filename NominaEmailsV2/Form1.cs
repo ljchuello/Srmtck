@@ -161,7 +161,7 @@ namespace NominaEmailsV2
                 Fichero.Guardar(_correo);
 
                 // Leemos el directorio
-                List<Pdf> files = new List<Pdf>();
+                List<Pdf> listPdf = new List<Pdf>();
 
                 // formateamos
                 foreach (var row in Directory.GetFiles(txtRutaOrigen.Text).ToList())
@@ -172,48 +172,50 @@ namespace NominaEmailsV2
                     // Validamos que sea extensión .pdf
                     if (row.ToLower().Contains("pdf"))
                     {
-                        // Seteamos el nombre
-                        string carpeta = "";
-                        string email = "";
-                        string reciboId = "";
-
-                        // File
+                        // Fileinfo
                         FileInfo fileInfo = new FileInfo(row);
 
-                        // Set recibo
-                        reciboId = fileInfo.Name.ToLower();
-                        reciboId = reciboId.Replace(" ", string.Empty);
-                        reciboId = reciboId.Substring(0, reciboId.IndexOf("_"));
+                        // Set
+                        string full = fileInfo.Name;
+                        string proyecto = string.Empty;
+                        string nombre = string.Empty;
+                        string recibo = string.Empty;
+                        string correo = string.Empty;
 
-                        // Ruta
-                        carpeta = reciboId.Substring(0, 2);
-
-                        // Email
-                        email = fileInfo.Name.ToLower();
-                        email = email.Replace(" ", string.Empty);
-                        email = email.Replace($"{reciboId}_", string.Empty);
-                        email = email.Replace(".pdf", string.Empty);
-
-                        // Set final
-                        reciboId = reciboId.ToUpper();
-                        email = email.ToLower();
-                        
-
-                        // validamos el correo eletrónico
-                        if (Pdf.Validar(email))
+                        // Validamos si tiene al menos 3 _
+                        if (row.Count(x => x == '_') < 3)
                         {
-                            // Seteamos
-                            pdf.Filename = row;
-                            pdf.Email = email;
-                            pdf.Ruta = carpeta;
+                            MessageBox.Show($"El archivo {fileInfo.Name} no tiene el formato correcto");
+                            return;
+                        }
 
-                            // Añadimos
-                            files.Add(pdf);
-                        }
-                        else
+                        // proyecto
+                        proyecto = full.Substring(0, full.IndexOf("_"));
+                        full = full.Replace($"{proyecto}_", string.Empty);
+
+                        // nombre
+                        nombre = full.Substring(0, full.IndexOf("_"));
+                        full = full.Replace($"{nombre}_", string.Empty);
+                        nombre = nombre.Replace("-", " ");
+
+                        // proyecto
+                        recibo = full.Substring(0, full.IndexOf("_"));
+                        full = full.Replace($"{recibo}_", string.Empty);
+
+                        // correo
+                        correo = full.ToLower();
+                        correo = correo.Replace(".pdf", "");
+
+                        // Set
+                        listPdf.Add(new Pdf
                         {
-                            MessageBox.Show($"El archivo .pdf {row} no es válido.", string.Empty, MessageBoxButtons.OK, MessageBoxIcon.Error);
-                        }
+                            Proyecto = proyecto,
+                            Nombre = nombre,
+                            Recibo = recibo,
+                            Email = correo,
+                            Ruta = row,
+                            Carpeta = proyecto.Substring(0, 2).ToUpper()
+                        });
                     }
                 }
 
@@ -223,15 +225,15 @@ namespace NominaEmailsV2
                 int fallidos = 0;
 
                 // Recorremos y enviamos
-                foreach (var row in files)
+                foreach (var row in listPdf)
                 {
-                    if (Send(row.Email, row.Filename, _correo))
+                    if (Send(row, _correo))
                     {
                         exitosos++;
 
                         // Movemos
-                        FileInfo fileInfo = new FileInfo(row.Filename);
-                        string destino = $"{txtRutaDestino.Text}\\{row.Ruta}";
+                        FileInfo fileInfo = new FileInfo(row.Ruta);
+                        string destino = $"{txtRutaDestino.Text}\\{row.Carpeta}";
                         Fichero.Mover(fileInfo, destino);
                     }
                     else
@@ -241,8 +243,8 @@ namespace NominaEmailsV2
 
                     lblExitosos.Text = $"Exitosos: {exitosos:n0}";
                     lblFallidos.Text = $"Fallidos: {fallidos:n0}";
-                    lblTotal.Text = $"Total: {files.Count:n0}";
-                    lblFaltantes.Text = $"Faltantes: {files.Count - (exitosos + fallidos):n0}";
+                    lblTotal.Text = $"Total: {listPdf.Count:n0}";
+                    lblFaltantes.Text = $"Faltantes: {listPdf.Count - (exitosos + fallidos):n0}";
                 }
 
                 // Proceso terminado
@@ -250,32 +252,33 @@ namespace NominaEmailsV2
             });
         }
 
-        public bool Send(string receptor, string file, Correo correo)
+        public bool Send(Pdf pdf, Correo correo)
         {
             try
             {
                 // Prioridad
-                ServicePointManager.ServerCertificateValidationCallback = (delegate { return true; });
-
-                FileInfo fileInfo = new FileInfo(file);
+                ServicePointManager.ServerCertificateValidationCallback = delegate { return true; };
 
                 // Construimos el correo
                 using (MailMessage mailMessage = new MailMessage())
                 {
-                    mailMessage.To.Add(receptor);
+                    mailMessage.To.Add(pdf.Email);
                     mailMessage.From = new MailAddress(correo.Email, correo.Email, Encoding.UTF8);
-                    mailMessage.Subject = $"Envío de recibo";
+                    mailMessage.Subject = $"Recibo de Caja - Grupo ANCON";
                     mailMessage.SubjectEncoding = Encoding.UTF8;
-                    mailMessage.Body = "<p>Estimado Cliente reciba un cordial saludo de Grupo ANCON le informamos que se ha procedido al registro de su abono, el mismo que se detalla en el Recibo de Caja adjunto.</p>" +
+                    mailMessage.Body = $"<p>Estimado Cliente {pdf.Nombre.ToUpper()}, del Proyecto {pdf.Proyecto.ToUpper()}, reciba un cordial saludo de Grupo ANCON le informamos que se ha procedido al registro de su abono con el Recibo {pdf.Recibo.ToUpper()}, el mismo que se detalla en el Recibo de Caja adjunto.</p>" +
                                        "<p>&nbsp;</p>" +
+                                       "<p>Atentamente,</p>" +
+                                       "<p>&nbsp;</p>" +
+                                       "<p>TESORERIA</p>" +
+                                       "<p>Grupo ANCON</p>" +
                                        "<p>Agradecemos su pago</p>" +
-                                       "<p>&nbsp;</p>" +
                                        "<p>Estamos para brindarle un excelente servicio, Saludos.</p>";
                     mailMessage.BodyEncoding = Encoding.UTF8;
                     mailMessage.IsBodyHtml = true;
 
                     // Adjuntamos
-                    mailMessage.Attachments.Add(new Attachment(file));
+                    mailMessage.Attachments.Add(new Attachment(pdf.Ruta));
 
                     // Enviamos
                     using (SmtpClient smtpClient = new SmtpClient())
@@ -293,7 +296,7 @@ namespace NominaEmailsV2
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"No se ha pidodo enviar el correo electrónca a {receptor}\n\nAh ocurrido un error; {ex.Message}");
+                MessageBox.Show($"No se ha pidodo enviar el correo electrónca a {pdf.Email}\n\nAh ocurrido un error; {ex.Message}");
                 return false;
             }
         }
