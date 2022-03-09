@@ -191,16 +191,22 @@ namespace NominaEmailsV2
 
                         // proyecto
                         proyecto = full.Substring(0, full.IndexOf("_"));
-                        full = full.Replace($"{proyecto}_", string.Empty);
+                        //full = full.Replace($"{proyecto}_", string.Empty);
+                        full = ReplaceFirst(full, $"{proyecto}_", string.Empty);
 
                         // nombre
                         nombre = full.Substring(0, full.IndexOf("_"));
-                        full = full.Replace($"{nombre}_", string.Empty);
+
+                        //full = full.Replace($"{nombre}_", string.Empty);
+                        full = ReplaceFirst(full, $"{nombre}_", string.Empty);
+
+                        //nombre = nombre.Replace("-", " ");
                         nombre = nombre.Replace("-", " ");
 
                         // proyecto
                         recibo = full.Substring(0, full.IndexOf("_"));
-                        full = full.Replace($"{recibo}_", string.Empty);
+                        //full = full.Replace($"{recibo}_", string.Empty);
+                        full = ReplaceFirst(full, $"{recibo}_", string.Empty);
 
                         // correo
                         correo = full.ToLower();
@@ -298,6 +304,23 @@ namespace NominaEmailsV2
             {
                 MessageBox.Show($"No se ha pidodo enviar el correo electrónca a {pdf.Email}\n\nAh ocurrido un error; {ex.Message}");
                 return false;
+            }
+        }
+
+        string ReplaceFirst(string text, string search, string replace)
+        {
+            try
+            {
+                int pos = text.IndexOf(search);
+                if (pos < 0)
+                {
+                    return text;
+                }
+                return text.Substring(0, pos) + replace + text.Substring(pos + search.Length);
+            }
+            catch (Exception e)
+            {
+                return string.Empty;
             }
         }
     }
