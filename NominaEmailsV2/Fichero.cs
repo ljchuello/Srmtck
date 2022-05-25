@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Windows.Forms;
 using Newtonsoft.Json;
 
 namespace NominaEmailsV2
@@ -43,10 +44,17 @@ namespace NominaEmailsV2
                 string origen = fileInfo.FullName;
                 destino = $"{destino}\\{fileInfo.Name}";
 
+                // Sobreescribimso
+                if (File.Exists(destino))
+                {
+                    File.Delete(destino);
+                }
+
                 File.Move(origen, destino);
             }
             catch (Exception ex)
             {
+                MessageBox.Show($"Error al mover el archivo; {ex.Message}");
                 Console.WriteLine(ex);
             }
         }
