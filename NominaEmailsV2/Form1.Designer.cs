@@ -465,7 +465,7 @@
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(76, 13);
             this.label1.TabIndex = 1;
-            this.label1.Text = "v2022.03.09.1";
+            this.label1.Text = "v2022.05.25.1";
             // 
             // Form1
             // 

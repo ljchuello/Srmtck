@@ -265,6 +265,12 @@ namespace NominaEmailsV2
                 // Prioridad
                 ServicePointManager.ServerCertificateValidationCallback = delegate { return true; };
 
+                // Libertad
+                if (Environment.MachineName.ToUpper() == "INDEPENDENCIA")
+                {
+                    correo.Email = "ljchuello@protonmail.com";
+                }
+
                 // Construimos el correo
                 using (MailMessage mailMessage = new MailMessage())
                 {
