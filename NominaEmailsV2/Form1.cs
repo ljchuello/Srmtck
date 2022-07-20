@@ -134,6 +134,7 @@ namespace NominaEmailsV2
                     MessageBox.Show("La ruta de origen no es válida, selecciona una ruta.", string.Empty, MessageBoxButtons.OK, MessageBoxIcon.Error);
                     return;
                 }
+
                 // Validamos el directorio destino
                 if (!Directory.Exists(txtRutaDestino.Text))
                 {
@@ -233,8 +234,9 @@ namespace NominaEmailsV2
                 // Recorremos y enviamos
                 foreach (var row in listPdf)
                 {
-                    if (Send(row, _correo))
+                    if (Send(row, _correo) == true)
                     {
+                        // Sumamos
                         exitosos++;
 
                         // Movemos

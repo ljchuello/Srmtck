@@ -41,6 +41,7 @@ namespace NominaEmailsV2
                 {
                     Directory.CreateDirectory(destino);
                 }
+
                 string origen = fileInfo.FullName;
                 destino = $"{destino}\\{fileInfo.Name}";
 
