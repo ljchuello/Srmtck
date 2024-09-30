@@ -106,6 +106,8 @@ namespace NominaEmailsV2
 
         private async void metroButton2_Click(object sender, EventArgs e)
         {
+            MessageBox.Show("Empezando validar la información en intentando enviar un correo de prueba.. Espere..");
+
             bool exitoso = await ValidarEmailAsync();
 
             if (exitoso)
