@@ -30,8 +30,6 @@
         {
             this.metroTabControl1 = new MetroFramework.Controls.MetroTabControl();
             this.metroTabPage1 = new MetroFramework.Controls.MetroTabPage();
-            this.metroLabel7 = new MetroFramework.Controls.MetroLabel();
-            this.txtRutaDestino = new MetroFramework.Controls.MetroTextBox();
             this.metroButton1 = new MetroFramework.Controls.MetroButton();
             this.lblFaltantes = new MetroFramework.Controls.MetroLabel();
             this.lblTotal = new MetroFramework.Controls.MetroLabel();
@@ -71,8 +69,7 @@
             // 
             // metroTabPage1
             // 
-            this.metroTabPage1.Controls.Add(this.metroLabel7);
-            this.metroTabPage1.Controls.Add(this.txtRutaDestino);
+            this.metroTabPage1.Controls.Add(this.label1);
             this.metroTabPage1.Controls.Add(this.metroButton1);
             this.metroTabPage1.Controls.Add(this.lblFaltantes);
             this.metroTabPage1.Controls.Add(this.lblTotal);
@@ -92,48 +89,9 @@
             this.metroTabPage1.VerticalScrollbarHighlightOnWheel = false;
             this.metroTabPage1.VerticalScrollbarSize = 10;
             // 
-            // metroLabel7
-            // 
-            this.metroLabel7.AutoSize = true;
-            this.metroLabel7.Location = new System.Drawing.Point(4, 63);
-            this.metroLabel7.Name = "metroLabel7";
-            this.metroLabel7.Size = new System.Drawing.Size(81, 19);
-            this.metroLabel7.TabIndex = 10;
-            this.metroLabel7.Text = "Ruta destino";
-            // 
-            // txtRutaDestino
-            // 
-            // 
-            // 
-            // 
-            this.txtRutaDestino.CustomButton.Image = null;
-            this.txtRutaDestino.CustomButton.Location = new System.Drawing.Point(303, 1);
-            this.txtRutaDestino.CustomButton.Name = "";
-            this.txtRutaDestino.CustomButton.Size = new System.Drawing.Size(21, 21);
-            this.txtRutaDestino.CustomButton.Style = MetroFramework.MetroColorStyle.Blue;
-            this.txtRutaDestino.CustomButton.TabIndex = 1;
-            this.txtRutaDestino.CustomButton.Theme = MetroFramework.MetroThemeStyle.Light;
-            this.txtRutaDestino.CustomButton.UseSelectable = true;
-            this.txtRutaDestino.CustomButton.Visible = false;
-            this.txtRutaDestino.Lines = new string[0];
-            this.txtRutaDestino.Location = new System.Drawing.Point(3, 85);
-            this.txtRutaDestino.MaxLength = 32767;
-            this.txtRutaDestino.Name = "txtRutaDestino";
-            this.txtRutaDestino.PasswordChar = '\0';
-            this.txtRutaDestino.ScrollBars = System.Windows.Forms.ScrollBars.None;
-            this.txtRutaDestino.SelectedText = "";
-            this.txtRutaDestino.SelectionLength = 0;
-            this.txtRutaDestino.SelectionStart = 0;
-            this.txtRutaDestino.ShortcutsEnabled = true;
-            this.txtRutaDestino.Size = new System.Drawing.Size(325, 23);
-            this.txtRutaDestino.TabIndex = 9;
-            this.txtRutaDestino.UseSelectable = true;
-            this.txtRutaDestino.WaterMarkColor = System.Drawing.Color.FromArgb(((int)(((byte)(109)))), ((int)(((byte)(109)))), ((int)(((byte)(109)))));
-            this.txtRutaDestino.WaterMarkFont = new System.Drawing.Font("Segoe UI", 12F, System.Drawing.FontStyle.Italic, System.Drawing.GraphicsUnit.Pixel);
-            // 
             // metroButton1
             // 
-            this.metroButton1.Location = new System.Drawing.Point(4, 191);
+            this.metroButton1.Location = new System.Drawing.Point(5, 143);
             this.metroButton1.Name = "metroButton1";
             this.metroButton1.Size = new System.Drawing.Size(324, 23);
             this.metroButton1.TabIndex = 8;
@@ -144,7 +102,7 @@
             // lblFaltantes
             // 
             this.lblFaltantes.AutoSize = true;
-            this.lblFaltantes.Location = new System.Drawing.Point(4, 168);
+            this.lblFaltantes.Location = new System.Drawing.Point(5, 120);
             this.lblFaltantes.Name = "lblFaltantes";
             this.lblFaltantes.Size = new System.Drawing.Size(62, 19);
             this.lblFaltantes.TabIndex = 7;
@@ -153,7 +111,7 @@
             // lblTotal
             // 
             this.lblTotal.AutoSize = true;
-            this.lblTotal.Location = new System.Drawing.Point(4, 149);
+            this.lblTotal.Location = new System.Drawing.Point(5, 101);
             this.lblTotal.Name = "lblTotal";
             this.lblTotal.Size = new System.Drawing.Size(39, 19);
             this.lblTotal.TabIndex = 6;
@@ -162,7 +120,7 @@
             // lblFallidos
             // 
             this.lblFallidos.AutoSize = true;
-            this.lblFallidos.Location = new System.Drawing.Point(4, 130);
+            this.lblFallidos.Location = new System.Drawing.Point(5, 82);
             this.lblFallidos.Name = "lblFallidos";
             this.lblFallidos.Size = new System.Drawing.Size(55, 19);
             this.lblFallidos.TabIndex = 5;
@@ -171,7 +129,7 @@
             // lblExitosos
             // 
             this.lblExitosos.AutoSize = true;
-            this.lblExitosos.Location = new System.Drawing.Point(3, 111);
+            this.lblExitosos.Location = new System.Drawing.Point(4, 63);
             this.lblExitosos.Name = "lblExitosos";
             this.lblExitosos.Size = new System.Drawing.Size(58, 19);
             this.lblExitosos.TabIndex = 4;
@@ -461,7 +419,7 @@
             // label1
             // 
             this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(2, 472);
+            this.label1.Location = new System.Drawing.Point(5, 169);
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(76, 13);
             this.label1.TabIndex = 1;
@@ -471,8 +429,7 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(390, 487);
-            this.Controls.Add(this.label1);
+            this.ClientSize = new System.Drawing.Size(390, 413);
             this.Controls.Add(this.metroTabControl1);
             this.Name = "Form1";
             this.Text = "Form1";
@@ -482,7 +439,6 @@
             this.metroTabPage2.ResumeLayout(false);
             this.metroTabPage2.PerformLayout();
             this.ResumeLayout(false);
-            this.PerformLayout();
 
         }
 
@@ -510,8 +466,6 @@
         private MetroFramework.Controls.MetroCheckBox chSsl;
         private MetroFramework.Controls.MetroLabel metroLabel6;
         private MetroFramework.Controls.MetroTextBox txtUsuario;
-        private MetroFramework.Controls.MetroLabel metroLabel7;
-        private MetroFramework.Controls.MetroTextBox txtRutaDestino;
         private System.Windows.Forms.Label label1;
     }
 }

@@ -19,7 +19,7 @@ namespace NominaEmailsV2
         public Form1()
         {
             InitializeComponent();
-            Text = @"Envio recibos";
+            Text = "Correos Nómina | v.2024.10.22.1";
 
             CheckForIllegalCrossThreadCalls = false;
 
@@ -36,7 +36,7 @@ namespace NominaEmailsV2
 
             // Rutas
             txtRutaOrigen.Text = _correo.RutaOrigen;
-            txtRutaDestino.Text = _correo.RutaDestino;
+            //txtRutaDestino.Text = _correo.RutaDestino;
         }
 
         async Task<bool> ValidarEmailAsync()
@@ -84,7 +84,7 @@ namespace NominaEmailsV2
                     _correo.Puerto = txtPuertoSalida.Text;
                     _correo.Ssl = chSsl.Checked;
                     _correo.RutaOrigen = txtRutaOrigen.Text;
-                    _correo.RutaDestino = txtRutaDestino.Text;
+                    //_correo.RutaDestino = txtRutaDestino.Text;
 
                     if (await _correo.ProbarAsync(_correo) == false)
                     {
@@ -135,12 +135,12 @@ namespace NominaEmailsV2
                     return;
                 }
 
-                // Validamos el directorio destino
-                if (!Directory.Exists(txtRutaDestino.Text))
-                {
-                    MessageBox.Show("La ruta de destino no es válida, selecciona una ruta.", string.Empty, MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    return;
-                }
+                //// Validamos el directorio destino
+                //if (!Directory.Exists(txtRutaDestino.Text))
+                //{
+                //    MessageBox.Show("La ruta de destino no es válida, selecciona una ruta.", string.Empty, MessageBoxButtons.OK, MessageBoxIcon.Error);
+                //    return;
+                //}
 
                 // probamos
                 _correo = new Correo();
@@ -151,7 +151,7 @@ namespace NominaEmailsV2
                 _correo.Puerto = txtPuertoSalida.Text;
                 _correo.Ssl = chSsl.Checked;
                 _correo.RutaOrigen = txtRutaOrigen.Text;
-                _correo.RutaDestino = txtRutaDestino.Text;
+                //_correo.RutaDestino = txtRutaDestino.Text;
 
                 if (await _correo.ProbarAsync(_correo) == false)
                 {
@@ -239,10 +239,10 @@ namespace NominaEmailsV2
                         // Sumamos
                         exitosos++;
 
-                        // Movemos
-                        FileInfo fileInfo = new FileInfo(row.Ruta);
-                        string destino = $"{txtRutaDestino.Text}\\{row.Carpeta}";
-                        Fichero.Mover(fileInfo, destino);
+                        //// Movemos
+                        //FileInfo fileInfo = new FileInfo(row.Ruta);
+                        //string destino = $"{txtRutaDestino.Text}\\{row.Carpeta}";
+                        //Fichero.Mover(fileInfo, destino);
                     }
                     else
                     {
@@ -266,12 +266,6 @@ namespace NominaEmailsV2
             {
                 // Prioridad
                 ServicePointManager.ServerCertificateValidationCallback = delegate { return true; };
-
-                // Libertad
-                if (Environment.MachineName.ToUpper() == "INDEPENDENCIA")
-                {
-                    correo.Email = "ljchuello@protonmail.com";
-                }
 
                 // Construimos el correo
                 using (MailMessage mailMessage = new MailMessage())
