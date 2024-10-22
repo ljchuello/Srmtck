@@ -3,12 +3,13 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
-using System.Net.Mail;
-using System.Text;
+using System.Reflection;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using MailKit.Net.Smtp;
 using MetroFramework.Forms;
 using Microsoft.WindowsAPICodePack.Dialogs;
+using MimeKit;
 
 namespace NominaEmailsV2
 {
@@ -158,14 +159,11 @@ namespace NominaEmailsV2
                     return;
                 }
 
-                // Grabamos
-                Fichero.Guardar(_correo);
-
                 // Leemos el directorio
-                List<Pdf> listPdf = new List<Pdf>();
+                List<Pdf> files = new List<Pdf>();
 
                 // formateamos
-                foreach (var row in Directory.GetFiles(txtRutaOrigen.Text).ToList())
+                foreach (var row in Directory.GetFiles(_correo.RutaOrigen).ToList())
                 {
                     // pdf
                     Pdf pdf = new Pdf();
@@ -173,56 +171,35 @@ namespace NominaEmailsV2
                     // Validamos que sea extensión .pdf
                     if (row.ToLower().Contains("pdf"))
                     {
-                        // Fileinfo
-                        FileInfo fileInfo = new FileInfo(row);
+                        // Seteamos el nombre
+                        string email = row;
 
-                        // Set
-                        string full = fileInfo.Name;
-                        string proyecto = string.Empty;
-                        string nombre = string.Empty;
-                        string recibo = string.Empty;
-                        string correo = string.Empty;
+                        // Eliminamos el directorio
+                        email = email.Replace(_correo.RutaOrigen, string.Empty);
 
-                        // Validamos si tiene al menos 3 _
-                        if (row.Count(x => x == '_') < 3)
+                        // Pasamos a minusculas
+                        email = email.ToLower();
+
+                        // Eliminamos el 202012_
+                        email = email.Substring(8, email.Length - 8);
+
+                        // Quitamos el .pdf
+                        email = email.Replace(".pdf", string.Empty);
+
+                        // validamos el correo eletrónico
+                        if (Pdf.Validar(email))
                         {
-                            MessageBox.Show($"El archivo {fileInfo.Name} no tiene el formato correcto");
-                            return;
+                            // Seteamos
+                            pdf.Filename = row;
+                            pdf.Email = email;
+
+                            // Añadimos
+                            files.Add(pdf);
                         }
-
-                        // proyecto
-                        proyecto = full.Substring(0, full.IndexOf("_"));
-                        //full = full.Replace($"{proyecto}_", string.Empty);
-                        full = ReplaceFirst(full, $"{proyecto}_", string.Empty);
-
-                        // nombre
-                        nombre = full.Substring(0, full.IndexOf("_"));
-
-                        //full = full.Replace($"{nombre}_", string.Empty);
-                        full = ReplaceFirst(full, $"{nombre}_", string.Empty);
-
-                        //nombre = nombre.Replace("-", " ");
-                        nombre = nombre.Replace("-", " ");
-
-                        // proyecto
-                        recibo = full.Substring(0, full.IndexOf("_"));
-                        //full = full.Replace($"{recibo}_", string.Empty);
-                        full = ReplaceFirst(full, $"{recibo}_", string.Empty);
-
-                        // correo
-                        correo = full.ToLower();
-                        correo = correo.Replace(".pdf", "");
-
-                        // Set
-                        listPdf.Add(new Pdf
+                        else
                         {
-                            Proyecto = proyecto,
-                            Nombre = nombre,
-                            Recibo = recibo,
-                            Email = correo,
-                            Ruta = row,
-                            Carpeta = proyecto.Substring(0, 2).ToUpper()
-                        });
+                            MessageBox.Show($"El archivo .pdf {row} no es válido.", string.Empty, MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        }
                     }
                 }
 
@@ -232,17 +209,11 @@ namespace NominaEmailsV2
                 int fallidos = 0;
 
                 // Recorremos y enviamos
-                foreach (var row in listPdf)
+                foreach (var row in files)
                 {
-                    if (Send(row, _correo) == true)
+                    if (Send(row.Email, row.Filename, _correo))
                     {
-                        // Sumamos
                         exitosos++;
-
-                        //// Movemos
-                        //FileInfo fileInfo = new FileInfo(row.Ruta);
-                        //string destino = $"{txtRutaDestino.Text}\\{row.Carpeta}";
-                        //Fichero.Mover(fileInfo, destino);
                     }
                     else
                     {
@@ -251,8 +222,8 @@ namespace NominaEmailsV2
 
                     lblExitosos.Text = $"Exitosos: {exitosos:n0}";
                     lblFallidos.Text = $"Fallidos: {fallidos:n0}";
-                    lblTotal.Text = $"Total: {listPdf.Count:n0}";
-                    lblFaltantes.Text = $"Faltantes: {listPdf.Count - (exitosos + fallidos):n0}";
+                    lblTotal.Text = $"Total: {files.Count:n0}";
+                    lblFaltantes.Text = $"Faltantes: {files.Count - (exitosos + fallidos):n0}";
                 }
 
                 // Proceso terminado
@@ -260,42 +231,72 @@ namespace NominaEmailsV2
             });
         }
 
-        public bool Send(Pdf pdf, Correo correo)
+        public bool Send(string receptor, string file, Correo correo)
         {
             try
             {
-                // Prioridad
-                ServicePointManager.ServerCertificateValidationCallback = delegate { return true; };
+                FileInfo fileInfo = new FileInfo(file);
 
-                // Construimos el correo
-                using (MailMessage mailMessage = new MailMessage())
+                using (var mailMessage = new MimeMessage())
                 {
-                    mailMessage.To.Add(pdf.Email);
-                    mailMessage.From = new MailAddress(correo.Email, correo.Email, Encoding.UTF8);
-                    mailMessage.Subject = $"Recibo de Caja - Grupo ANCON";
-                    mailMessage.SubjectEncoding = Encoding.UTF8;
-                    mailMessage.Body = $"<p>Estimado Cliente {pdf.Nombre.ToUpper()}, del Proyecto {pdf.Proyecto.ToUpper()}, reciba un cordial saludo de Grupo ANCON le informamos que se ha procedido al registro de su abono con el Recibo {pdf.Recibo.ToUpper()}, el mismo que se detalla en el Recibo de Caja adjunto.</p>" +
-                                       "<p>&nbsp;</p>" +
-                                       "<p>Atentamente,</p>" +
-                                       "<p>&nbsp;</p>" +
-                                       "<p>TESORERIA</p>" +
-                                       "<p>Grupo ANCON</p>" +
-                                       "<p>Agradecemos su pago</p>" +
-                                       "<p>Estamos para brindarle un excelente servicio, Saludos.</p>";
-                    mailMessage.BodyEncoding = Encoding.UTF8;
-                    mailMessage.IsBodyHtml = true;
+                    ServicePointManager.ServerCertificateValidationCallback = (delegate { return true; });
 
-                    // Adjuntamos
-                    mailMessage.Attachments.Add(new Attachment(pdf.Ruta));
+                    mailMessage.From.Add(new MailboxAddress("Nómina", correo.Email));
+                    mailMessage.To.Add(new MailboxAddress(string.Empty, receptor));
 
-                    // Enviamos
-                    using (SmtpClient smtpClient = new SmtpClient())
+                    switch (fileInfo.Name.Substring(4, 2))
                     {
-                        smtpClient.Credentials = new NetworkCredential(correo.Usuario, correo.Contrasenia);
-                        smtpClient.Port = Convert.ToInt32(correo.Puerto);
-                        smtpClient.Host = correo.Servidor;
-                        smtpClient.EnableSsl = correo.Ssl;
+                        case "01":
+                            mailMessage.Subject = $"ROL DE PAGOS de Enero {fileInfo.Name.Substring(0, 4)}";
+                            break;
+                        case "02":
+                            mailMessage.Subject = $"ROL DE PAGOS de Febrero {fileInfo.Name.Substring(0, 4)}";
+                            break;
+                        case "03":
+                            mailMessage.Subject = $"ROL DE PAGOS de Marzo {fileInfo.Name.Substring(0, 4)}";
+                            break;
+                        case "04":
+                            mailMessage.Subject = $"ROL DE PAGOS de Abril {fileInfo.Name.Substring(0, 4)}";
+                            break;
+                        case "05":
+                            mailMessage.Subject = $"ROL DE PAGOS de Mayo {fileInfo.Name.Substring(0, 4)}";
+                            break;
+                        case "06":
+                            mailMessage.Subject = $"ROL DE PAGOS de Junio {fileInfo.Name.Substring(0, 4)}";
+                            break;
+                        case "07":
+                            mailMessage.Subject = $"ROL DE PAGOS de Julio {fileInfo.Name.Substring(0, 4)}";
+                            break;
+                        case "08":
+                            mailMessage.Subject = $"ROL DE PAGOS de Agosto {fileInfo.Name.Substring(0, 4)}";
+                            break;
+                        case "09":
+                            mailMessage.Subject = $"ROL DE PAGOS de Septiembre {fileInfo.Name.Substring(0, 4)}";
+                            break;
+                        case "10":
+                            mailMessage.Subject = $"ROL DE PAGOS de Octumbre {fileInfo.Name.Substring(0, 4)}";
+                            break;
+                        case "11":
+                            mailMessage.Subject = $"ROL DE PAGOS de Noviembre {fileInfo.Name.Substring(0, 4)}";
+                            break;
+                        case "12":
+                            mailMessage.Subject = $"ROL DE PAGOS de Diciembre {fileInfo.Name.Substring(0, 4)}";
+                            break;
+                    }
+
+                    mailMessage.Subject = mailMessage.Subject.ToUpper();
+
+                    BodyBuilder bodyBuilder = new BodyBuilder();
+                    bodyBuilder.HtmlBody = $"Adjunto se encuentra su {mailMessage.Subject.ToLower()}.";
+                    bodyBuilder.Attachments.Add($"{mailMessage.Subject.ToLower()}.pdf", File.ReadAllBytes(fileInfo.FullName));
+                    mailMessage.Body = bodyBuilder.ToMessageBody();
+
+                    using (var smtpClient = new SmtpClient())
+                    {
+                        smtpClient.Connect(correo.Servidor, Convert.ToInt32(correo.Puerto), correo.Ssl);
+                        smtpClient.Authenticate(correo.Usuario, correo.Contrasenia);
                         smtpClient.Send(mailMessage);
+                        smtpClient.Disconnect(true);
                     }
                 }
 
@@ -304,7 +305,7 @@ namespace NominaEmailsV2
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"No se ha pidodo enviar el correo electrónca a {pdf.Email}\n\nAh ocurrido un error; {ex.Message}");
+                MessageBox.Show($"No se ha pidodo enviar el correo electrónca.\n\nAh ocurrido un error; {ex.Message}");
                 return false;
             }
         }
