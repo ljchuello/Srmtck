@@ -1,10 +1,10 @@
 ﻿using System;
+using System.IO;
 using System.Net;
-using System.Net.Mail;
-using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using Newtonsoft.Json;
+using MailKit.Net.Smtp;
+using MimeKit;
 
 namespace NominaEmailsV2
 {
@@ -17,7 +17,7 @@ namespace NominaEmailsV2
         public string Puerto { set; get; } = string.Empty;
         public bool Ssl { set; get; } = true;
         public string RutaOrigen { set; get; } = string.Empty;
-        public string RutaDestino { set; get; } = string.Empty;
+        //public string RutaDestino { set; get; } = string.Empty;
 
         public async Task<bool> ProbarAsync(Correo correo)
         {
@@ -25,30 +25,24 @@ namespace NominaEmailsV2
             {
                 try
                 {
-                    // Prioridad
-                    ServicePointManager.ServerCertificateValidationCallback = (delegate { return true; });
-
-                    // Construimos el correo
-                    using (MailMessage mailMessage = new MailMessage())
+                    using (var mailMessage = new MimeMessage())
                     {
-                        mailMessage.To.Add("noresponder@sermatick.com");
-                        mailMessage.From = new MailAddress(correo.Email, $"Sermatick", Encoding.UTF8);
-                        mailMessage.Subject = "Resumen rol de pago";
-                        mailMessage.SubjectEncoding = Encoding.UTF8;
-                        mailMessage.Body = "<p>Estimado Cliente reciba un cordial saludo de Grupo ANCON le informamos que se ha procedido al registro de su abono, el mismo que se detalla en el Recibo de Caja adjunto." +
-                                           "<br/>Agradecemos su pago" +
-                                           "<br/>Estamos para brindarle un excelente servicio, Saludos.<p>";
-                        mailMessage.BodyEncoding = Encoding.UTF8;
-                        mailMessage.IsBodyHtml = true;
+                        ServicePointManager.ServerCertificateValidationCallback = (delegate { return true; });
 
-                        // Enviamos
-                        using (SmtpClient smtpClient = new SmtpClient())
+                        mailMessage.From.Add(new MailboxAddress("Nómina", correo.Email));
+                        mailMessage.To.Add(new MailboxAddress(string.Empty, correo.Email));
+                        mailMessage.Subject = "Correo de prueba";
+
+                        BodyBuilder bodyBuilder = new BodyBuilder();
+                        bodyBuilder.HtmlBody = "Esto es un correo de prueba";
+                        mailMessage.Body = bodyBuilder.ToMessageBody();
+
+                        using (var smtpClient = new SmtpClient())
                         {
-                            smtpClient.Credentials = new NetworkCredential(correo.Usuario, correo.Contrasenia);
-                            smtpClient.Port = Convert.ToInt32(correo.Puerto);
-                            smtpClient.Host = correo.Servidor;
-                            smtpClient.EnableSsl = correo.Ssl;
+                            smtpClient.Connect(correo.Servidor, Convert.ToInt32(correo.Puerto), correo.Ssl);
+                            smtpClient.Authenticate(correo.Usuario, correo.Contrasenia);
                             smtpClient.Send(mailMessage);
+                            smtpClient.Disconnect(true);
                         }
                     }
 
